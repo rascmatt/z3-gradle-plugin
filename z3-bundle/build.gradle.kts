@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    `maven-publish`
 }
 
 group = "org.rascmatt"
@@ -11,6 +12,19 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+}
+
+publishing {
+
+    publications {
+        create<MavenPublication>("mavenKotlin") {
+            from(components["kotlin"])
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
 }
 
 tasks.test {

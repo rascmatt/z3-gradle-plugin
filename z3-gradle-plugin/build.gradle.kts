@@ -8,10 +8,13 @@ group = "org.rascmatt"
 version = "1.0-SNAPSHOT"
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 dependencies {
+    implementation("org.rascmatt:z3-bundle:$version")
+
     testImplementation(kotlin("test"))
 }
 
