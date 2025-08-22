@@ -2,8 +2,10 @@ package io.github.rascmatt.z3
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.jvm.tasks.ProcessResources
 import java.io.File
@@ -82,6 +84,46 @@ class Z3Plugin : Plugin<Project> {
         project.tasks.withType(Test::class.java).configureEach {
             it.environment("Z3_HOME", outDir.absolutePath)
             it.environment("DYLD_LIBRARY_PATH", outDir.absolutePath)
+        }
+
+        // Add natives to the distribution (installDist)
+
+        project.pluginManager.withPlugin("application") {
+
+            project.extensions.configure(DistributionContainer::class.java) {
+                it.named("main").configure { dist ->
+                    dist.contents { c ->
+                        c.from(outDir) { f ->
+                            f.into("lib")
+                            f.include("**/libz3.*", "**/libz3java.*")
+                        }
+                    }
+                }
+            }
+        }
+
+        // Patch the start script
+        project.tasks.named("startScripts", CreateStartScripts::class.java).configure { t ->
+
+            t.doLast {
+
+                val unix = t.unixScript
+
+                val unixContent = unix.readText()
+                    .replace(
+                        Regex("(?m)^exec \"${'\\'}${'$'}JAVACMD\".*$"),
+                        """
+                            # Provide Z3 lib location
+                            export Z3_HOME="${'\\'}${'$'}APP_HOME/lib"
+                            
+                            $0
+                        """.trimIndent()
+                    )
+
+                unix.writeText(unixContent)
+
+                // TODO: Handle windows script
+            }
         }
 
     }

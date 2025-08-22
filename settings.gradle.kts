@@ -4,3 +4,4 @@ plugins {
 rootProject.name = "z3"
 include("z3-bundle")
 include("z3-gradle-plugin")
+include("z3-bootstrap")

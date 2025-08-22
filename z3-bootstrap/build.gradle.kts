@@ -10,11 +10,16 @@ repositories {
     mavenCentral()
 }
 
+java {
+    withSourcesJar()
+}
+
 publishing {
 
     publications {
         create<MavenPublication>("mavenKotlin") {
             from(components["kotlin"])
+            artifact(tasks.named("sourcesJar"))
         }
     }
 

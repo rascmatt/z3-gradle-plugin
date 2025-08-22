@@ -1,16 +1,16 @@
 package io.github.rascmatt.z3
 
-enum class Platform(val values: Set<String>, val z3Name: String) {
-    LINUX(setOf("linux"), "glibc"),
-    MAC(setOf("mac", "macos", "osx"), "osx"),
-    WINDOWS(setOf("windows", "win"), "win");
+enum class Platform(val z3Name: String) {
+    LINUX("glibc"),
+    MAC("osx"),
+    WINDOWS("win");
 
     companion object {
         fun resolve(name: String): Platform {
             val lowerName = name.lowercase()
             return when {
-                MAC.values.any { lowerName.contains(it) } -> return MAC
-                WINDOWS.values.any { lowerName.contains(it) } -> return WINDOWS
+                lowerName.contains("win") -> WINDOWS
+                lowerName.contains("mac") || lowerName.contains("darwin") -> MAC
                 else -> LINUX
             }
         }
