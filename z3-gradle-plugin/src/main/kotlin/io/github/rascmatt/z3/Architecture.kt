@@ -1,4 +1,4 @@
-package org.rascmatt.z3
+package io.github.rascmatt.z3
 
 enum class Architecture(val values: Set<String>, val z3Name: String) {
     INTEL_86(setOf("x86"), "x86"),

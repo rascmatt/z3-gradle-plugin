@@ -4,7 +4,7 @@ plugins {
     `maven-publish`
 }
 
-group = "org.rascmatt"
+group = "io.github.rascmatt"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.rascmatt:z3-bundle:$version")
+    implementation("io.github.rascmatt:z3-bundle:$version")
 
     testImplementation(kotlin("test"))
 }
@@ -21,8 +21,8 @@ dependencies {
 gradlePlugin {
     plugins {
         create("z3Plugin") {
-            id = "org.rascmatt.z3"
-            implementationClass = "org.rascmatt.z3.Z3Plugin"
+            id = "io.github.rascmatt.z3"
+            implementationClass = "io.github.rascmatt.z3.Z3Plugin"
             displayName = "Z3 Gradle Plugin"
         }
     }

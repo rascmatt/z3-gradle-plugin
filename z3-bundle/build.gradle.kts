@@ -3,7 +3,7 @@ plugins {
     `maven-publish`
 }
 
-group = "org.rascmatt"
+group = "io.github.rascmatt"
 version = "1.0-SNAPSHOT"
 
 repositories {

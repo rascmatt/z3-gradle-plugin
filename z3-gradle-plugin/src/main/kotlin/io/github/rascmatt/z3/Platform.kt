@@ -1,4 +1,4 @@
-package org.rascmatt.z3
+package io.github.rascmatt.z3
 
 enum class Platform(val values: Set<String>, val z3Name: String) {
     LINUX(setOf("linux"), "glibc"),

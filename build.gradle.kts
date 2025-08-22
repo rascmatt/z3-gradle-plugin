@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.21"
 }
 
-group = "org.rascmatt"
+group = "io.github.rascmatt"
 version = "1.0-SNAPSHOT"
 
 repositories {

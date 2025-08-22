@@ -1,4 +1,4 @@
-package org.rascmatt.z3
+package io.github.rascmatt.z3
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
