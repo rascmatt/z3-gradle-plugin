@@ -10,6 +10,7 @@ object Z3Bootstrap {
     @Volatile
     private var initialized = false
 
+    @JvmStatic
     fun init() {
 
         if (initialized) {
