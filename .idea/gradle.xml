@@ -9,6 +9,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/z3-bootstrap" />
             <option value="$PROJECT_DIR$/z3-bundle" />
             <option value="$PROJECT_DIR$/z3-gradle-plugin" />
           </set>
