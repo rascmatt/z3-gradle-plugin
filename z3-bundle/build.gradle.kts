@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.rascmatt"
-version = "1.0-SNAPSHOT"
+version = "4.15.3"
 
 repositories {
     mavenCentral()

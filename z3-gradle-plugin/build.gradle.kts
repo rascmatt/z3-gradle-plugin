@@ -13,8 +13,6 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.rascmatt:z3-bundle:$version")
-
     testImplementation(kotlin("test"))
 }
 

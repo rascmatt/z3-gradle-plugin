@@ -2,9 +2,11 @@ package io.github.rascmatt.z3
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.application.CreateStartScripts
@@ -13,7 +15,6 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.jvm.tasks.ProcessResources
 import java.io.File
-import java.net.URLClassLoader
 import java.util.*
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -21,9 +22,39 @@ import java.util.jar.JarFile
 
 class Z3Plugin : Plugin<Project> {
 
+    private val defaultBundleVersion = "4.15.3"
+
     override fun apply(project: Project) {
 
-        val zipPath = getArchive(project)
+        // Resolve the z3-bundle dependency
+        val z3Ext = project.extensions.create("z3", Z3Extension::class.java)
+
+        val z3BundleCfg = project.configurations.create("z3Version") {
+            it.isCanBeResolved = true
+            it.isCanBeConsumed = false
+            it.isVisible = false
+        }
+
+        val bundleCoords = project.providers.provider {
+            when {
+                z3Ext.bundleCoordinates.isPresent -> z3Ext.bundleCoordinates.get()
+                z3Ext.version.isPresent -> "io.github.rascmatt:z3-bundle:${z3Ext.version.get()}"
+                else -> "io.github.rascmatt:z3-bundle:$defaultBundleVersion"
+            }
+        }
+
+
+        z3BundleCfg.dependencies.addLater(
+            project.providers.provider {
+                project.logger.debug("Using z3-bundle: ${bundleCoords.get()}")
+                project.dependencies.create(bundleCoords.get())
+            }
+        )
+
+        // Prepare bundle for extraction
+
+        val bundleJar: Provider<File> = resolveBundleJar(z3BundleCfg, project)
+        val zipEntryName: Provider<String> = bundleJar.resolveArchiveName(project)
 
         val outDir = project.layout.buildDirectory.dir("generated/z3/resources").get().asFile
 
@@ -31,7 +62,8 @@ class Z3Plugin : Plugin<Project> {
             it.group = "z3"
             it.description = "Extracts the Z3 binaries into build-generated resources."
             it.outputDir.set(outDir)
-            it.zipFile.set(zipPath)
+            it.bundleJar.set(bundleJar.get())
+            it.zipFileName.set(zipEntryName)
             it.filter = { name ->
                 name.endsWith(".dylib") || name.endsWith(".so") || name.endsWith(".dll") || name.endsWith(".jar")
             }
@@ -171,35 +203,41 @@ class Z3Plugin : Plugin<Project> {
         return (platform to architecture)
     }
 
-    private fun getArchive(project: Project): String {
+    private fun resolveBundleJar(z3BundleConfig: Configuration, project: Project): Provider<File> =
+        project.providers.provider {
+            val files = z3BundleConfig.resolve()
+                .filter { it.name.contains("z3-bundle") }
+                .filter { it.name.endsWith(".jar") }
+            require(files.size == 1) { "Expected exactly one z3-bundle JAR, got: $files" }
+            files.single()
+        }
+
+    private fun Provider<File>.resolveArchiveName(project: Project): Provider<String> {
 
         val (os, arch) = resolvePlatform(project)
 
-        val classLoader = javaClass
-            .classLoader as URLClassLoader
+        return map {
 
-        val bundleJar = classLoader.urLs
-            .filter { it.file.contains("z3-bundle") }
-            .first { it.file.endsWith(".jar") }
+            var z3Zips: List<String> = listOf()
+            JarFile(it).use { jar ->
+                z3Zips = jar.stream()
+                    .map(JarEntry::getName)
+                    .filter { name -> name.startsWith("z3-") }
+                    .filter { name -> name.endsWith(".zip") }
+                    .toList()
+            }
 
-        var z3Zips: List<String> = listOf()
-        JarFile(bundleJar.file).use { jar ->
-            z3Zips = jar.stream()
-                .map(JarEntry::getName)
-                .filter { name -> name.startsWith("z3-") }
-                .filter { name -> name.endsWith(".zip") }
-                .toList()
+            project.logger.info("Bundled Z3 archives available: $z3Zips")
+
+            val z3Archive = z3Zips
+                .filter { it.contains(os.z3Name) }
+                .first { it.contains(arch.z3Name) }
+
+            project.logger.info("Extracting $z3Archive")
+
+            z3Archive
         }
 
-        project.logger.info("Bundled Z3 archives available: $z3Zips")
-
-        val z3Archive = z3Zips
-            .filter { it.contains(os.z3Name) }
-            .first { it.contains(arch.z3Name) }
-
-        project.logger.info("Extracting $z3Archive")
-
-        return z3Archive
     }
 
 }
