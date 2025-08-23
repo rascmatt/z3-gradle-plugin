@@ -3,9 +3,13 @@ package io.github.rascmatt.z3
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.distribution.DistributionContainer
+import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.application.CreateStartScripts
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.jvm.tasks.ProcessResources
 import java.io.File
@@ -41,7 +45,13 @@ class Z3Plugin : Plugin<Project> {
         // After nativeCompile, copy the z3 binaries next to the executable
         project.pluginManager.withPlugin("org.graalvm.buildtools.native") {
 
-            val nativeCompile = project.tasks.named("nativeCompile")
+            val nativeCompile = kotlin.runCatching {
+                project.tasks.named("nativeCompile")
+            }.getOrNull()
+
+            if (nativeCompile == null) {
+                return@withPlugin
+            }
 
             val placeNatives = project.tasks.register("z3PlaceNativesNextToImage", Copy::class.java) {
                 // make sure natives exist and the image is compiled
@@ -57,6 +67,17 @@ class Z3Plugin : Plugin<Project> {
             nativeCompile.configure { it.finalizedBy(placeNatives) }
         }
 
+        // Add environment vars for gradle run & tests
+
+        project.tasks.withType(JavaExec::class.java).configureEach {
+            it.environment("Z3_HOME", outDir.absolutePath)
+            it.environment("DYLD_LIBRARY_PATH", outDir.absolutePath)
+        }
+
+        project.tasks.withType(Test::class.java).configureEach {
+            it.environment("Z3_HOME", outDir.absolutePath)
+            it.environment("DYLD_LIBRARY_PATH", outDir.absolutePath)
+        }
 
         // Add the jar file as a dependency
 
@@ -74,25 +95,31 @@ class Z3Plugin : Plugin<Project> {
             addFileDepOn("implementation")
         }
 
-        // Add environment vars for gradle run & tests
+        // Avoid duplicate issues by skipping the dependency if it already exists
 
-        project.tasks.withType(JavaExec::class.java).configureEach {
-            it.environment("Z3_HOME", outDir.absolutePath)
-            it.environment("DYLD_LIBRARY_PATH", outDir.absolutePath)
+        val skipDupes: (CopySpec) -> Unit = {
+            it.eachFile { file ->
+                if (file.name == jarFile.name) {
+                    file.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                }
+            }
         }
 
-        project.tasks.withType(Test::class.java).configureEach {
-            it.environment("Z3_HOME", outDir.absolutePath)
-            it.environment("DYLD_LIBRARY_PATH", outDir.absolutePath)
-        }
+        project.tasks.withType(Tar::class.java).configureEach(skipDupes)
+        project.tasks.withType(Zip::class.java).configureEach(skipDupes)
+        project.tasks.withType(Copy::class.java).configureEach(skipDupes)
 
-        // Add natives to the distribution (installDist)
+        // Add binaries to the distribution (installDist)
 
         project.pluginManager.withPlugin("application") {
 
+            // Copy the natives to the lib dir
             project.extensions.configure(DistributionContainer::class.java) {
+
                 it.named("main").configure { dist ->
                     dist.contents { c ->
+                        skipDupes(c)
+
                         c.from(outDir) { f ->
                             f.into("lib")
                             f.include("**/libz3.*", "**/libz3java.*")
@@ -102,8 +129,10 @@ class Z3Plugin : Plugin<Project> {
             }
         }
 
-        // Patch the start script
-        project.tasks.named("startScripts", CreateStartScripts::class.java).configure { t ->
+        // Patch the start script (if available)
+        kotlin.runCatching {
+            project.tasks.named("startScripts", CreateStartScripts::class.java)
+        }.getOrNull()?.configure { t ->
 
             t.doLast {
 
@@ -113,11 +142,11 @@ class Z3Plugin : Plugin<Project> {
                     .replace(
                         Regex("(?m)^exec \"${'\\'}${'$'}JAVACMD\".*$"),
                         """
-                            # Provide Z3 lib location
-                            export Z3_HOME="${'\\'}${'$'}APP_HOME/lib"
-                            
-                            $0
-                        """.trimIndent()
+                        # Provide Z3 lib location
+                        export Z3_HOME="${'\\'}${'$'}APP_HOME/lib"
+                        
+                        $0
+                    """.trimIndent()
                     )
 
                 unix.writeText(unixContent)
