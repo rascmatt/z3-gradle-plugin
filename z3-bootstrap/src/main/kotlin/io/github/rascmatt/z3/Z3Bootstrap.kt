@@ -11,36 +11,46 @@ object Z3Bootstrap {
     private var initialized = false
 
     @JvmStatic
-    fun init() {
+    fun init(): Boolean {
 
         if (initialized) {
-            return
+            return true
         }
 
-        synchronized(this) {
+        return synchronized(this) {
 
             if (initialized) {
-                return
+                return true
             }
 
-            initInternal()
+            if (!initInternal()) {
+                return false
+            }
 
             // Tell Z3 com.microsoft.z3.Native to load the lib again
             System.setProperty("z3.skipLibraryLoad", "true")
 
             initialized = true
+            true
         }
     }
 
-    private fun initInternal() {
+    private fun initInternal(): Boolean {
 
-        val (z3, z3Java) = locateLibs()
+        val (z3, z3Java) = locateLibs() ?: return false
 
-        System.load(z3)
-        System.load(z3Java)
+        try {
+            System.load(z3)
+            System.load(z3Java)
+            return true
+        } catch (e: Exception) {
+            return false
+        } catch (e: UnsatisfiedLinkError) {
+            return false
+        }
     }
 
-    private fun locateLibs(): Pair<String, String> {
+    private fun locateLibs(): Pair<String, String>? {
 
         // Prefer the Z3_HOME environment variable if available
         System.getenv("Z3_HOME")?.let {
@@ -67,7 +77,7 @@ object Z3Bootstrap {
             }
         }
 
-        throw IllegalArgumentException("Could not locate Z3 library. Consider setting the Z3_HOME environment variable.")
+        return null
     }
 
     private fun getLibs(path: String): Pair<String, String>? {
