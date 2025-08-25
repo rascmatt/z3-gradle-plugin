@@ -1,5 +1,8 @@
 # z3-gradle-plugin
 
+[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/io.github.rascmatt.z3?logo=gradle&label=Gradle%20Plugin%20Portal&color=%2393c10b)](https://plugins.gradle.org/plugin/io.github.rascmatt.z3)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.rascmatt/z3-bootstrap.svg?label=Maven%20Central&logo=apachemaven&color=%2393c10b)](https://central.sonatype.com/artifact/io.github.rascmatt/z3-bootstrap)
+
 This Gradle plugin extracts and provides the necessary Z3 native binaries and JAR sources at build time, eliminating the need for runtime extraction. By selecting the correct Z3 native binaries for your system architecture (`x64`, `arm64`) and operating system (`glibc`, `osx`, `win`) during the build, it significantly improves startup performance compared to wrappers that extract natives at runtime (e.g. [z3-turnkey](https://github.com/tudo-aqua/z3-turnkey)). It supports both JVM and GraalVM native image builds.
 
 ## Features
