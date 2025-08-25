@@ -7,5 +7,8 @@ include("z3-gradle-plugin")
 include("z3-bootstrap")
 
 include("z3-bundle")
+
 include("z3-bundle:z3-bundle-arm64-osx")
 include("z3-bundle:z3-bundle-arm64-glibc")
+include("z3-bundle:z3-bundle-x64-glibc")
+include("z3-bundle:z3-bundle-x64-win")
