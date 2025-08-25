@@ -11,6 +11,10 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/z3-bootstrap" />
             <option value="$PROJECT_DIR$/z3-bundle" />
+            <option value="$PROJECT_DIR$/z3-bundle/z3-bundle-arm64-glibc" />
+            <option value="$PROJECT_DIR$/z3-bundle/z3-bundle-arm64-osx" />
+            <option value="$PROJECT_DIR$/z3-bundle/z3-bundle-x64-glibc" />
+            <option value="$PROJECT_DIR$/z3-bundle/z3-bundle-x64-win" />
             <option value="$PROJECT_DIR$/z3-gradle-plugin" />
           </set>
         </option>

@@ -1,1 +1,13 @@
 z3-bundle/src/main/resources/*.zip filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-arm64-osx/src/main/resources/libz3java.dylib filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-arm64-osx/src/main/resources/libz3.dylib filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-arm64-osx/src/main/resources/com.microsoft.z3.jar filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-arm64-glibc/src/main/resources/com.microsoft.z3.jar filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-arm64-glibc/src/main/resources/libz3.so filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-arm64-glibc/src/main/resources/libz3java.so filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-x64-win/src/main/resources/com.microsoft.z3.jar filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-x64-win/src/main/resources/libz3.dll filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-x64-win/src/main/resources/libz3java.dll filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-x64-glibc/src/main/resources/com.microsoft.z3.jar filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-x64-glibc/src/main/resources/libz3.so filter=lfs diff=lfs merge=lfs -text
+z3-bundle/z3-bundle-x64-glibc/src/main/resources/libz3java.so filter=lfs diff=lfs merge=lfs -text
