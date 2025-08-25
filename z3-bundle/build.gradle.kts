@@ -1,6 +1,5 @@
 plugins {
     kotlin("jvm")
-    `maven-publish`
 }
 
 group = "io.github.rascmatt"
@@ -10,22 +9,6 @@ repositories {
     mavenCentral()
 }
 
-publishing {
-
-    publications {
-        create<MavenPublication>("mavenKotlin") {
-            from(components["kotlin"])
-        }
-    }
-
-    repositories {
-        mavenLocal()
-    }
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
 kotlin {
     jvmToolchain(21)
 }
