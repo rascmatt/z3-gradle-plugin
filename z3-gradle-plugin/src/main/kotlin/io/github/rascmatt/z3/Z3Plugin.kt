@@ -14,6 +14,7 @@ import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.jvm.tasks.ProcessResources
+import org.gradle.process.JavaForkOptions
 import java.io.File
 import java.util.*
 
@@ -97,17 +98,23 @@ class Z3Plugin : Plugin<Project> {
             nativeCompile.configure { it.finalizedBy(placeNatives) }
         }
 
-        // Add environment vars for gradle run & tests
+        // Configure environment for gradle run & tests
 
-        project.tasks.withType(JavaExec::class.java).configureEach {
-            it.environment("Z3_HOME", outDir.absolutePath)
-            it.environment("DYLD_LIBRARY_PATH", outDir.absolutePath)
+        fun setEnv(task: JavaForkOptions) {
+            task.environment("Z3_HOME", outDir.absolutePath)
+
+            when (os) {
+                Platform.LINUX -> task.environment("LD_LIBRARY_PATH", outDir.absolutePath)
+                Platform.MAC -> task.environment("DYLD_LIBRARY_PATH", outDir.absolutePath)
+                Platform.WINDOWS -> task.environment(
+                    "PATH",
+                    outDir.absolutePath + File.pathSeparator + (System.getenv("PATH") ?: "")
+                )
+            }
         }
 
-        project.tasks.withType(Test::class.java).configureEach {
-            it.environment("Z3_HOME", outDir.absolutePath)
-            it.environment("DYLD_LIBRARY_PATH", outDir.absolutePath)
-        }
+        project.tasks.withType(JavaExec::class.java).configureEach(::setEnv)
+        project.tasks.withType(Test::class.java).configureEach(::setEnv)
 
         // Add the jar file as a dependency
 
@@ -166,9 +173,7 @@ class Z3Plugin : Plugin<Project> {
 
             t.doLast {
 
-                val unix = t.unixScript
-
-                val unixContent = unix.readText()
+                val unixContent = t.unixScript.readText()
                     .replace(
                         Regex("(?m)^exec \"${'\\'}${'$'}JAVACMD\".*$"),
                         """
@@ -179,9 +184,20 @@ class Z3Plugin : Plugin<Project> {
                     """.trimIndent()
                     )
 
-                unix.writeText(unixContent)
+                t.unixScript.writeText(unixContent)
 
-                // TODO: Handle windows script
+                val windowsContent = t.windowsScript.readText()
+                    .replace(
+                        Regex("(?m)^set JAVA_EXE=.*$"),
+                        """
+                        $0
+                        
+                        # Provide Z3 lib location
+                        set Z3_HOME=%APP_HOME%/lib
+                    """.trimIndent()
+                    )
+
+                t.windowsScript.writeText(windowsContent)
             }
         }
 
