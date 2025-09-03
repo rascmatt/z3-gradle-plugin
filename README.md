@@ -19,7 +19,7 @@ Add the plugin to your `build.gradle.kts`:
 
 ```kotlin
 plugins {
-    id("io.github.rascmatt.z3") version "1.0.1"
+    id("io.github.rascmatt.z3") version "1.0.2"
 }
 ```
 
@@ -30,6 +30,8 @@ z3 {
     version = "4.15.3"
 }
 ```
+
+The specified version corresponds to the z3-bundle version (e.g. [arm64 osx bundle](https://central.sonatype.com/artifact/io.github.rascmatt/z3-bundle-arm64-osx)). 
 
 ### Runtime Initialization
 
