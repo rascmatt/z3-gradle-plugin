@@ -21,7 +21,7 @@ import java.util.*
 
 class Z3Plugin : Plugin<Project> {
 
-    private val defaultBundleVersion = "4.15.3"
+    private val defaultBundleVersion = "4.15.3.1"
 
     override fun apply(project: Project) {
 
